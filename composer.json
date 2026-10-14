@@ -2,7 +2,7 @@
     "name": "prestoworld/gutenberg-core",
     "autoload": {
         "psr-4": {
-            "Prestoworld\\GutenbergCore\\": "src/"
+            "": "src/"
         }
     },
     "authors": [
