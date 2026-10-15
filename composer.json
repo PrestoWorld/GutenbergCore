@@ -1,15 +1,28 @@
 {
     "name": "prestoworld/gutenberg-core",
-    "autoload": {
-        "psr-4": {
-            "": "src/"
-        }
-    },
+    "description": "WordPress Core Gutenberg Block Definitions for PrestoWorld",
+    "type": "library",
+    "license": "GPL-2.0-or-later",
     "authors": [
         {
-            "name": "Puleeno Nguyen",
+            "name": "PrestoWorld Team",
             "email": "puleeno@gmail.com"
         }
     ],
-    "require": {}
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "files": [
+            "blocks-json.php",
+            "block.php",
+            "require-static-blocks.php",
+            "require-dynamic-blocks.php"
+        ],
+        "psr-4": {
+            "WP\\Blocks\\": ""
+        }
+    },
+    "require": {
+        "php": "^8.1"
+    }
 }
