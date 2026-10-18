@@ -12,12 +12,6 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "autoload": {
-        "files": [
-            "blocks-json.php",
-            "block.php",
-            "require-static-blocks.php",
-            "require-dynamic-blocks.php"
-        ],
         "psr-4": {
             "WP\\Blocks\\": ""
         }
