@@ -15,6 +15,15 @@ final class PostTemplateHandler extends AbstractHandler
     {
         $posts = $this->context($block)->get('query_posts');
 
+        // core/query resolves its collection in the render callback, which runs
+        // AFTER inner blocks (post-template) in the pipeline. When we get here
+        // first, resolve the collection ourselves from the `query` block context
+        // provided by core/query (faithful to WP's post-template behaviour).
+        if (!is_array($posts)) {
+            $query = is_array($block->context['query'] ?? null) ? $block->context['query'] : [];
+            $posts = $this->resolveQueryPosts($block, $query);
+        }
+
         if (!is_array($posts)) {
             return '';
         }

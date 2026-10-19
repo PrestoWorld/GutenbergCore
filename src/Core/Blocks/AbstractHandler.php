@@ -82,6 +82,55 @@ abstract class AbstractHandler implements BlockHandlerInterface
         return is_scalar($value) ? (string) $value : $default;
     }
 
+    /**
+     * Build PostRepository criteria from a core/query `query` attribute array.
+     *
+     * @param array<string, mixed> $query
+     * @return array<string, mixed>
+     */
+    protected function buildQueryCriteria(array $query): array
+    {
+        $criteria = [
+            'post_type' => !empty($query['postType']) ? (array) $query['postType'] : ['post', 'page'],
+            'status' => 'publish',
+            'order' => strtoupper((string) ($query['order'] ?? 'DESC')),
+            'orderby' => $query['orderBy'] ?? 'date',
+            'per_page' => max(1, (int) ($query['perPage'] ?? 10)),
+            'offset' => max(0, (int) ($query['offset'] ?? 0)),
+        ];
+
+        if (!empty($query['search'])) {
+            $criteria['search'] = (string) $query['search'];
+        }
+
+        if (!empty($query['author'])) {
+            $criteria['author_id'] = (int) $query['author'];
+        }
+
+        return $criteria;
+    }
+
+    /**
+     * Resolve the post collection for a `query` attribute array via the
+     * post_repository in the render context. Returns [] when unavailable.
+     *
+     * @param array<string, mixed> $query
+     * @return list<array<string, mixed>>
+     */
+    protected function resolveQueryPosts(BlockInstance $block, array $query): array
+    {
+        $repository = $this->context($block)->get('post_repository');
+
+        if (!is_object($repository) || !method_exists($repository, 'find')) {
+            return [];
+        }
+
+        /** @var list<array<string, mixed>> $posts */
+        $posts = $repository->find($this->buildQueryCriteria($query));
+
+        return $posts;
+    }
+
     protected function esc(string $value): string
     {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
