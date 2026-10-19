@@ -16,22 +16,7 @@ final class QueryHandler extends AbstractHandler
     {
         $query = is_array($attributes['query'] ?? null) ? $attributes['query'] : [];
 
-        $criteria = [
-            'post_type' => !empty($query['postType']) ? (array) $query['postType'] : ['post', 'page'],
-            'status' => 'publish',
-            'order' => strtoupper((string) ($query['order'] ?? 'DESC')),
-            'orderby' => $query['orderBy'] ?? 'date',
-            'per_page' => max(1, (int) ($query['perPage'] ?? 10)),
-            'offset' => max(0, (int) ($query['offset'] ?? 0)),
-        ];
-
-        if (!empty($query['search'])) {
-            $criteria['search'] = (string) $query['search'];
-        }
-
-        if (!empty($query['author'])) {
-            $criteria['author_id'] = (int) $query['author'];
-        }
+        $criteria = $this->buildQueryCriteria($query);
 
         $repository = $this->context($block)->get('post_repository');
 
