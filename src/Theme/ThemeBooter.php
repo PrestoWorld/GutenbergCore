@@ -70,11 +70,11 @@ final class ThemeBooter
 
     private static function loadCompileLayer(): void
     {
-        if (!class_exists(\PrestoWorld\Core\Legacy\ShimLoader::class)) {
+        if (!class_exists(\Prestoworld\WordpressShim\ShimLoader::class)) {
             return;
         }
 
-        $shims = new \PrestoWorld\Core\Legacy\ShimLoader();
+        $shims = new \Prestoworld\WordpressShim\ShimLoader();
         $shims->loadGroup('hooks');
         $shims->loadGroup('compat');
         $shims->registerAutoload();
