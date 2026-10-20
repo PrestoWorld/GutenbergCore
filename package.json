@@ -1,0 +1,19 @@
+{
+  "name": "@prestoworld/site-editor",
+  "version": "0.1.0",
+  "description": "PrestoWorld Site Editor — block-based Context Editor (fork of the WordPress Gutenberg editing model, rebuilt for responsive-first layouts).",
+  "private": true,
+  "type": "module",
+  "license": "GPL-2.0-or-later",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "vite build",
+    "build:min": "vite build --mode production"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
