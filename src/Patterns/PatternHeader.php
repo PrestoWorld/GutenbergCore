@@ -20,15 +20,31 @@ final class PatternHeader
     {
         $pattern = '/^(?:[ \t]*<\?php)?[ \t\/*#@]*' . 'Pattern Name:\s*(.*)$/mi';
 
-        if (!preg_match($pattern, $fileContents, $matches)) {
+        if (!preg_match($pattern, $fileContents, $matches, PREG_OFFSET_CAPTURE)) {
             $pattern = '/^(?:[ \t]*<\?php)?[ \t\/*#@]*' . 'Title:\s*(.*)$/mi';
 
-            if (!preg_match($pattern, $fileContents, $matches)) {
+            if (!preg_match($pattern, $fileContents, $matches, PREG_OFFSET_CAPTURE)) {
                 return [];
             }
         }
 
-        $headerText = $matches[0];
+        // Anchor line found — expand to the whole docblock that carries it so
+        // every `Key: value` line (Slug:, Categories:, ...) is captured, not
+        // just the anchor line itself.
+        $anchorOffset = $matches[0][1];
+        $start = strrpos(substr($fileContents, 0, $anchorOffset), '/*');
+
+        if ($start === false) {
+            $start = $anchorOffset;
+        }
+
+        $end = strpos($fileContents, '*/', $anchorOffset);
+
+        if ($end === false) {
+            $end = strlen($fileContents);
+        }
+
+        $headerText = substr($fileContents, $start, $end - $start);
         $headers = [];
 
         foreach (explode("\n", $headerText) as $line) {

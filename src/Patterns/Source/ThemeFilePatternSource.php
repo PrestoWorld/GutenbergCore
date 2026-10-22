@@ -21,7 +21,7 @@ final class ThemeFilePatternSource implements PatternSourceInterface
 
     public function __construct(
         private readonly string $themeDir,
-        private readonly string $defaultNamespace = 'twentytwentyfive',
+        private readonly ?string $defaultNamespace = null,
         ?PatternHeader $headerParser = null,
     ) {
         $this->headerParser = $headerParser ?? new PatternHeader();
@@ -58,7 +58,8 @@ final class ThemeFilePatternSource implements PatternSourceInterface
             return null;
         }
 
-        $slug = $headers['slug'] ?? ($this->defaultNamespace . '/' . basename($file, '.php'));
+        $slug = $headers['slug']
+            ?? (($this->defaultNamespace ?? basename($this->themeDir)) . '/' . basename($file, '.php'));
 
         return new Pattern(
             slug: $slug,
