@@ -1,1 +1,97 @@
-.se-block-body{min-height:1px}.se-block-body>*:last-child{margin-bottom:0}.se-block-children{margin:6px 0 6px 18px;padding-left:12px;border-left:2px solid #e6e6e6}.se-block-children .se-block{margin:4px 0}.se-block.is-selected>.se-block-body{position:relative}.se-block:after{content:attr(data-block);position:absolute;top:-8px;right:6px;background:#1e1e1e;color:#fff;font-size:9px;padding:1px 6px;border-radius:2px;opacity:0;pointer-events:none;transition:opacity .12s;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.se-block:hover:after,.se-block.is-selected:after{opacity:1}.se-b-queryloop:before{content:attr(data-label);display:block;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#757575;margin-bottom:6px}.se-frame.se-view-tablet{max-width:760px}.se-frame.se-view-mobile{max-width:420px}.se-block-empty:hover{border-color:#3858e9;color:#3858e9;cursor:pointer}.se-block-card:focus-visible,.se-btn:focus-visible,.se-nav-item:focus-visible{outline:2px solid #3858e9;outline-offset:2px}.se-insp-empty code{background:#f0f0f1;padding:1px 5px;border-radius:3px;font-size:11px}
+/**
+ * Site Editor runtime styles (loaded from /site-editor/assets/main.css).
+ *
+ * Chrome/header/panel layout lives inline in SiteEditorController so the page
+ * paints before JS. This file covers what the editor JS creates at runtime.
+ */
+
+/* ---- block body ---- */
+.se-block-body {
+  min-height: 1px;
+}
+
+.se-block-body > *:last-child {
+  margin-bottom: 0;
+}
+
+/* nested children: visually indented so hierarchy reads at a glance */
+.se-block-children {
+  margin: 6px 0 6px 18px;
+  padding-left: 12px;
+  border-left: 2px solid #e6e6e6;
+}
+
+.se-block-children .se-block {
+  margin: 4px 0;
+}
+
+/* block selected → emphasise the real content, dim nothing else */
+.se-block.is-selected > .se-block-body {
+  position: relative;
+}
+
+/* type chip appears on hover/selected */
+.se-block::after {
+  content: attr(data-block);
+  position: absolute;
+  top: -8px;
+  right: 6px;
+  background: #1e1e1e;
+  color: #fff;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.se-block:hover::after,
+.se-block.is-selected::after {
+  opacity: 1;
+}
+
+/* empty query-loop placeholder header */
+.se-b-queryloop::before {
+  content: attr(data-label);
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #757575;
+  margin-bottom: 6px;
+}
+
+/* ---- viewport modes ---- */
+.se-frame.se-view-tablet {
+  max-width: 760px;
+}
+
+.se-frame.se-view-mobile {
+  max-width: 420px;
+}
+
+/* ---- selected region empty hint interaction ---- */
+.se-block-empty:hover {
+  border-color: #3858e9;
+  color: #3858e9;
+  cursor: pointer;
+}
+
+/* ---- library card focus ring (a11y) ---- */
+.se-block-card:focus-visible,
+.se-btn:focus-visible,
+.se-nav-item:focus-visible {
+  outline: 2px solid #3858e9;
+  outline-offset: 2px;
+}
+
+/* ---- inspector empty state ---- */
+.se-insp-empty code {
+  background: #f0f0f1;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
