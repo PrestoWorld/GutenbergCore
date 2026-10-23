@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PrestoWorld\Gutenberg\Parser;
 
+use PrestoWorld\Gutenberg\Cache\CacheBridge;
 use PrestoWorld\Gutenberg\Contracts\ParserInterface;
 use PrestoWorld\Gutenberg\Parser\Node\BlockNode;
 use PrestoWorld\Gutenberg\Parser\Node\FreeformNode;
@@ -24,6 +25,21 @@ final class BlockSerializer implements ParserInterface
      */
     private const TOKENIZER = '/<!--\s+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)\s+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+\/?-->).)*+)?}\s+)?(?P<void>\/)?-->/s';
 
+    /** Parse-cache cap (entries per worker). */
+    private const PARSE_CACHE_MAX = 256;
+
+    /**
+     * Parse cache — per worker, key = sha1(salt . content).
+     *
+     * Content-addressed nên self-invalidating: file đổi → hash đổi. Salt do
+     * host cấp (dashboard Clear). Cached nodes an toàn để share: render chỉ
+     * đọc qua BlockNode::toArray() (mảng con COW — ghi sẽ tách copy, node
+     * gốc không đổi).
+     *
+     * @var array<string, list<ParsedNodeInterface>>
+     */
+    private static array $parseCache = [];
+
     private string $document = '';
 
     private int $offset = 0;
@@ -43,6 +59,16 @@ final class BlockSerializer implements ParserInterface
 
     public function parse(string $content): array
     {
+        $bridge = CacheBridge::get();
+        $useCache = $bridge !== null && $bridge->enabled('parse');
+        $key = $useCache ? sha1($bridge->salt('parse') . $content) : '';
+
+        if ($useCache && isset(self::$parseCache[$key])) {
+            $bridge->stat('parse', 'hit');
+
+            return self::$parseCache[$key];
+        }
+
         $this->document = $content;
         $this->offset = 0;
         $this->output = [];
@@ -52,7 +78,33 @@ final class BlockSerializer implements ParserInterface
             // Intentionally empty — the state machine drives itself.
         }
 
+        if ($useCache) {
+            if (count(self::$parseCache) >= self::PARSE_CACHE_MAX) {
+                self::$parseCache = [];
+                $bridge->stat('parse', 'evict');
+            }
+
+            self::$parseCache[$key] = $this->output;
+            $bridge->stat('parse', 'miss');
+        }
+
         return $this->output;
+    }
+
+    /**
+     * Số entry parse cache trong worker hiện tại (dashboard stats).
+     *
+     * @return array{entries: int, cap: int}
+     */
+    public static function cacheStats(): array
+    {
+        return ['entries' => count(self::$parseCache), 'cap' => self::PARSE_CACHE_MAX];
+    }
+
+    /** Xoá cục bộ worker này (purge từ dashboard/API). */
+    public static function flushLocalCache(): void
+    {
+        self::$parseCache = [];
     }
 
     private function proceed(): bool

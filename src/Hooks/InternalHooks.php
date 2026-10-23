@@ -34,7 +34,14 @@ final class InternalHooks implements HookManagerInterface
 
     public function applyFilters(string $tag, mixed $value, mixed ...$args): mixed
     {
-        foreach ($this->sorted($this->filters[$tag] ?? []) as $hook) {
+        $hooksByPriority = $this->filters[$tag] ?? [];
+
+        if ($hooksByPriority === []) {
+            // Fast-path: tag chưa đăng ký callback — bỏ ksort/flatten/array_slice.
+            return $value;
+        }
+
+        foreach ($this->sorted($hooksByPriority) as $hook) {
             $callArgs = array_slice(array_merge([$value], $args), 0, $hook['accepted_args']);
             $value = ($hook['callback'])(...$callArgs);
         }
@@ -44,7 +51,13 @@ final class InternalHooks implements HookManagerInterface
 
     public function doAction(string $tag, mixed ...$args): void
     {
-        foreach ($this->sorted($this->actions[$tag] ?? []) as $hook) {
+        $hooksByPriority = $this->actions[$tag] ?? [];
+
+        if ($hooksByPriority === []) {
+            return;
+        }
+
+        foreach ($this->sorted($hooksByPriority) as $hook) {
             ($hook['callback'])(...array_slice($args, 0, $hook['accepted_args']));
         }
     }

@@ -9,6 +9,19 @@ use PrestoWorld\Gutenberg\Exceptions\TemplateNotFoundException;
 
 final class TemplatePartHandler extends AbstractHandler
 {
+    /**
+     * Fragment-cache bridge do host đăng ký lúc boot (app owns policy:
+     * enabled/TTL/salt/gen/stats — vendor chỉ gọi). Null → không cache.
+     *
+     * @var (callable(string, array<string, mixed>): ?string)|null
+     */
+    public static $cacheLookup = null;
+
+    /**
+     * @var (callable(string, array<string, mixed>, string): void)|null
+     */
+    public static $cacheStore = null;
+
     public function render(array $attributes, string $content, BlockInstance $block): string
     {
         $slug = $this->stringAttr($attributes, 'slug');
@@ -16,6 +29,14 @@ final class TemplatePartHandler extends AbstractHandler
         if ($slug === '') {
             // An inline (unsaved) template part renders its inner content.
             return $content;
+        }
+
+        $lookup = self::$cacheLookup;
+        if ($lookup !== null) {
+            $cached = $lookup($slug, $attributes);
+            if ($cached !== null) {
+                return $cached;
+            }
         }
 
         $repository = $this->context($block)->get('template_repository');
@@ -44,10 +65,17 @@ final class TemplatePartHandler extends AbstractHandler
             $extra['data-area'] = $part->area;
         }
 
-        return sprintf(
+        $html = sprintf(
             '<div%s>%s</div>',
             $this->wrapper($block, $extra),
             $renderer->render($parser->parse($part->content))
         );
+
+        $store = self::$cacheStore;
+        if ($store !== null) {
+            $store($slug, $attributes, $html);
+        }
+
+        return $html;
     }
 }
