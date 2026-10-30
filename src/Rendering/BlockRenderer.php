@@ -9,6 +9,7 @@ use PrestoWorld\Gutenberg\Block\Type\BlockTypeRegistry;
 use PrestoWorld\Gutenberg\Bindings\BindingsProcessor;
 use PrestoWorld\Gutenberg\Contracts\BlockRendererInterface;
 use PrestoWorld\Gutenberg\Contracts\HookManagerInterface;
+use PrestoWorld\Gutenberg\Exceptions\BlockNotRegisteredException;
 use PrestoWorld\Gutenberg\Parser\Node\BlockNode;
 use PrestoWorld\Gutenberg\Parser\Node\FreeformNode;
 use PrestoWorld\Gutenberg\Parser\Node\ParsedNodeInterface;
@@ -98,6 +99,13 @@ final class BlockRenderer implements BlockRendererInterface
         $preRender = $this->hooks->applyFilters('pre_render_block', null, $parsed, $parentParsed);
         if ($preRender !== null) {
             return (string) $preRender;
+        }
+
+        // A block with a name but no registered type has no handler — fail
+        // loudly instead of silently rendering empty inner content. Freeform
+        // text (blockName === null) never reaches renderBlock().
+        if ($block->blockType === null) {
+            throw BlockNotRegisteredException::forName($block->name());
         }
 
         // Stage 2 — data filter (may mutate the parsed payload).

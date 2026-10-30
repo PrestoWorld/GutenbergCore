@@ -45,12 +45,7 @@ final class TemplatePartHandler extends AbstractHandler
             throw TemplateNotFoundException::named('part:' . $slug, 'no template repository in render context');
         }
 
-        try {
-            $part = $repository->part($slug);
-        } catch (TemplateNotFoundException) {
-            // Fall back to the inner content stored in the template markup.
-            return $content;
-        }
+        $part = $repository->part($slug);
 
         $parser = $this->context($block)->get('block_parser');
 

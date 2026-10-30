@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PrestoWorld\Gutenberg\Core\Blocks;
 
 use PrestoWorld\Gutenberg\Block\BlockInstance;
+use PrestoWorld\Gutenberg\Exceptions\TemplateNotFoundException;
 
 final class PatternHandler extends AbstractHandler
 {
@@ -30,8 +31,7 @@ final class PatternHandler extends AbstractHandler
         $pattern = $registry->get($slug);
 
         if ($pattern === null) {
-            // Pattern may be a hidden theme file not yet registered — no output.
-            return '';
+            throw TemplateNotFoundException::named('pattern:' . $slug, '(pattern not registered in the theme; no patterns/*.php declares this slug)');
         }
 
         return $block->renderer()->render($parser->parse($pattern->content));
