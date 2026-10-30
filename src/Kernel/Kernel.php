@@ -54,7 +54,7 @@ final class Kernel
      *        (post_repository, post_resolver, site_title, ...)
      */
     public function __construct(
-        private readonly string $themeDir,
+        private string $themeDir,
         private readonly array $services = [],
         private readonly ?HookManagerInterface $hooks = null,
     ) {
@@ -112,6 +112,49 @@ final class Kernel
     public function themeDir(): string
     {
         return $this->themeDir;
+    }
+
+    /**
+     * Re-key the kernel's template/pattern sources to a new theme directory.
+     *
+     * The kernel is booted once as a singleton with a fixed themeDir, so its
+     * TemplateRepository and PatternRegistry are keyed to that one dir. Multi-
+     * tenant renderers (e.g. BookPress subsites) resolve a per-subsite theme
+     * dir at render time and must re-point the sources — and the shared
+     * RenderContext references — so template-part/pattern blocks resolve
+     * against the active theme instead of silently producing empty output.
+     */
+    public function setThemeDir(string $themeDir): void
+    {
+        if ($themeDir === $this->themeDir) {
+            return;
+        }
+
+        $this->themeDir = $themeDir;
+
+        $this->templates = new TemplateRepository(new ThemeFileTemplateSource($this->themeDir));
+
+        $this->patterns = new PatternRegistry();
+        $source = new ThemeFilePatternSource($this->themeDir);
+
+        foreach ($source->discover() as $pattern) {
+            if ($pattern instanceof Pattern) {
+                $this->patterns->register($pattern->slug, $pattern);
+            }
+        }
+
+        foreach (ThemeContext::patternCategories() as $slug => $settings) {
+            $this->patterns->registerCategory(
+                $slug,
+                (string) ($settings['label'] ?? $slug),
+                isset($settings['description']) ? (string) ($settings['description']) : null,
+            );
+        }
+
+        // Re-point the shared RenderContext so template-part/pattern blocks
+        // resolve against the newly keyed sources.
+        $this->renderContext->set('template_repository', $this->templates);
+        $this->renderContext->set('pattern_registry', $this->patterns);
     }
 
     public function blockTypes(): BlockTypeRegistry
