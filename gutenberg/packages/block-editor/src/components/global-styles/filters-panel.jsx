@@ -57,7 +57,7 @@ function useHasDuotoneControl( settings ) {
 	return (
 		settings.color.customDuotone ||
 		settings.color.defaultDuotone ||
-		settings.color.duotone.length > 0
+		( settings.color.duotone ?? [] ).length > 0
 	);
 }
 
